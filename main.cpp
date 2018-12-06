@@ -13,7 +13,6 @@ int m = 0;
 void g() {
     for (int i = 0; i < 10; ++i) {
         mut.lock();
-
         m++;
         mut.unlock();
     }
@@ -23,7 +22,6 @@ void g() {
 void f() {
     for (int i = 0; i < 10; ++i) {
         mut.lock();
-
         m++;
         mut.unlock();
     }
