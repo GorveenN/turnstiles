@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
 project(clion)
 
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(clion main.cpp turnstile.h turnstile.cpp)
+#add_executable(clion main.cpp)

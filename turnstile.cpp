@@ -1,32 +1,47 @@
 #include "turnstile.h"
 
-Mutex::Mutex() : barrier(), activeThreads(0) {}
-static std::queue<std::mutex*> turnstile;
+Mutex::Mutex() : activeThreads(0) {}
+std::set<std::mutex> Mutex::turnstile;
+std::unordered_map<Mutex*, std::mutex*> Mutex::mutexLocker;
+std::mutex Mutex::dataRace;
 
 void Mutex::lock() {
+    std::unique_lock<std::mutex> lk (dataRace);
     activeThreads++;
-    if (activeThreads > 1) {
-        myTurnstile = takeTurnstile();
 
+    if (activeThreads > 1) {
+        if (activeThreads == 2) {
+            mutexLocker[this] = getTurnstile();
+            mutexLocker[this]->lock();
+        }
+        lk.unlock();
+        mutexLocker[this]->lock();
     }
-    activeThreads--;
 }
 
 void Mutex::unlock() {
+    std::unique_lock<std::mutex> lk(dataRace);
     activeThreads--;
 
-    barrier.notify_all();
+    if (activeThreads == 0) {
+        mutexLocker.erase(this);
+    }
+    if (activeThreads > 0) {
+        mutexLocker[this]->unlock();
+    }
 }
 
-std::mutex* Mutex::takeTurnstile() {
-    if (turnstile.empty()) {
-        turnstile.emplace(new std::mutex());
-    }
-    std::mutex*& m = turnstile.front();
-    turnstile.pop();
-    return m;
+std::mutex* Mutex::getTurnstile() {
+    //if (turnstile.empty()) {
+        //std::mutex newMutex;
+        //turnstile.emplace(newMutex);
+    //}
+    //std::mutex*& m = turnstile.front();
+    //turnstile.pop();
+    std::mutex* a = new std::mutex;
+    return a;
 }
 
 void Mutex::giveBackTurnstile(std::mutex* m) {
-    turnstile.push(m);
+    //turnstile.push(m);
 }

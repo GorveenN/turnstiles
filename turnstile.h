@@ -1,21 +1,21 @@
 #ifndef SRC_TURNSTILE_H_
 #define SRC_TURNSTILE_H_
 
-#include <type_traits>
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
+#include <unordered_map>
+#include <unordered_set>
 #include <set>
-#include <queue>
 
 class Mutex {
 private:
-    static std::queue<std::mutex*> turnstile;
+    static std::set<std::mutex> turnstile;
+    static std::unordered_map<Mutex*, std::mutex*> mutexLocker;
+    static std::mutex dataRace;
     std::atomic_uint activeThreads;
-    std::condition_variable barrier;
-    std::mutex* myTurnstile;
 
-    std::mutex* takeTurnstile();
+    std::mutex* getTurnstile();
     void giveBackTurnstile(std::mutex*);
 
 public:
