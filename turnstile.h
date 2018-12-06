@@ -10,16 +10,16 @@
 
 class Mutex {
 private:
-    static std::set<std::mutex*> turnstile;
-    static std::unordered_map<Mutex*, std::mutex*> mutexLocker;
+    static std::set<std::shared_ptr<std::mutex>> turnstile;
+    static std::unordered_map<Mutex*, std::shared_ptr<std::mutex>> mutexLocker;
     static std::mutex dataRace;
     static std::atomic_uint64_t turnstileTaken;
 
 
     std::atomic_uint activeThreads;
 
-    std::mutex* getTurnstile();
-    void giveBackTurnstile(std::mutex*);
+    std::shared_ptr<std::mutex> getTurnstile();
+    void giveBackTurnstile(std::shared_ptr<std::mutex>);
 
 public:
 

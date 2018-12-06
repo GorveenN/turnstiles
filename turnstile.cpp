@@ -1,9 +1,10 @@
 #include "turnstile.h"
+#include <memory>
 
 Mutex::Mutex() : activeThreads(0) {}
 std::atomic_uint64_t Mutex::turnstileTaken = 0;
-std::set<std::mutex*> Mutex::turnstile;
-std::unordered_map<Mutex*, std::mutex*> Mutex::mutexLocker;
+std::set<std::shared_ptr<std::mutex>> Mutex::turnstile;
+std::unordered_map<Mutex*, std::shared_ptr<std::mutex>> Mutex::mutexLocker;
 std::mutex Mutex::dataRace;
 
 void Mutex::lock() {
@@ -34,10 +35,10 @@ void Mutex::unlock() {
     }
 }
 
-std::mutex* Mutex::getTurnstile() {
+std::shared_ptr<std::mutex> Mutex::getTurnstile() {
     if (turnstile.empty()) {
         for (int i = 0; i < turnstileTaken; ++i) {
-            turnstile.insert(new std::mutex);
+            turnstile.insert(std::shared_ptr<std::mutex>(new std::mutex));
         }
     }
     auto m = *turnstile.begin();
@@ -45,14 +46,12 @@ std::mutex* Mutex::getTurnstile() {
     return m;
 }
 
-void Mutex::giveBackTurnstile(std::mutex* m) {
+void Mutex::giveBackTurnstile(std::shared_ptr<std::mutex> m) {
     turnstile.insert(m);
     if (activeThreads <= turnstile.size() / 4) {
         auto iter = turnstile.begin();
         for (int i = 0; i < turnstile.size() * 0.75; ++i) {
-            auto mutex = *iter;
             iter = turnstile.erase(iter);
-            delete mutex;
         }
     }
 }
