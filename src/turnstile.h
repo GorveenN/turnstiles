@@ -19,6 +19,7 @@ struct Locker {
 class Menager {
  private:
   size_t batch;
+  Locker* dummy;
   std::mutex mux;
   std::queue<Locker*> pool;
 
@@ -27,12 +28,12 @@ class Menager {
   ~Menager();
   Locker* getTurnstile();
   void returnTurnstile(Locker*);
+  Locker* showDummy();
 };
 
 class Mutex {
  private:
   static Menager menago;
-  static Locker* dummy;
   static std::vector<std::mutex> dataRace;
   static u_char dataRaceMax;
 

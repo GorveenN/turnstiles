@@ -8,10 +8,10 @@ target_link_libraries(test_f turnstile_lib)
 target_link_libraries(test_f "${CMAKE_THREAD_LIBS_INIT}")
 add_test(test_f test_f)
 
-add_executable(global_performance_test global_performance_test.cpp)
-target_link_libraries(global_performance_test turnstile_lib)
-target_link_libraries(global_performance_test "${CMAKE_THREAD_LIBS_INIT}")
-add_test(global_performance_test global_performance_test)
+#add_executable(global_performance_test global_performance_test.cpp)
+#target_link_libraries(global_performance_test turnstile_lib)
+#target_link_libraries(global_performance_test "${CMAKE_THREAD_LIBS_INIT}")
+#add_test(global_performance_test global_performance_test)
 
 
 add_executable(multiple_test multiple_test.cpp)

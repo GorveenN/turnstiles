@@ -1,7 +1,6 @@
 #include "turnstile.h"
 
 std::vector<std::mutex> Mutex::dataRace(std::numeric_limits<u_char>::max());
-Locker* Mutex::dummy = new Locker;
 Menager Mutex::menago;
 u_char Mutex::dataRaceMax = std::numeric_limits<u_char>::max();
 
@@ -10,9 +9,9 @@ Mutex::Mutex() : lckPtr(nullptr) {}
 void Mutex::lock() {
   std::unique_lock<std::mutex> ul(dataRace[(size_t)this % dataRaceMax]);
   if (lckPtr == nullptr) {
-    lckPtr = dummy;
+    lckPtr = menago.showDummy();
   } else {
-    if (lckPtr == dummy) {
+    if (lckPtr == menago.showDummy()) {
       lckPtr = menago.getTurnstile();
     }
     lckPtr->cntr++;
@@ -24,7 +23,7 @@ void Mutex::lock() {
 
 void Mutex::unlock() {
   std::unique_lock<std::mutex> ul(dataRace[(size_t)this % dataRaceMax]);
-  if (lckPtr == dummy) {
+  if (lckPtr == menago.showDummy()) {
     lckPtr = nullptr;
   } else if (lckPtr->cntr == 0) {
     menago.returnTurnstile(lckPtr);
@@ -38,7 +37,7 @@ void Mutex::unlock() {
 }
 
 // Menager
-Menager::Menager() : batch(128) {}
+Menager::Menager() : batch(128), dummy(new Locker) {}
 
 Menager::~Menager() {
   size_t size = pool.size();
@@ -47,6 +46,7 @@ Menager::~Menager() {
     pool.pop();
     delete ptr;
   }
+  delete dummy;
 }
 
 Locker* Menager::getTurnstile() {
@@ -74,4 +74,8 @@ void Menager::returnTurnstile(Locker* ptr) {
       delete rem;
     }
   }
+}
+
+Locker* Menager::showDummy() {
+  return dummy;
 }
