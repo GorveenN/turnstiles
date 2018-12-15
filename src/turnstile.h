@@ -4,30 +4,46 @@
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
-#include <unordered_map>
-#include <unordered_set>
+#include <queue>
 #include <vector>
+
+struct Locker {
+  std::mutex mux;
+  std::condition_variable cv;
+  std::atomic<bool> locked;
+  std::atomic<int> cntr;
+
+  Locker() : locked(true), cntr(0) {}
+};
+
+class Menager {
+ private:
+  size_t batch;
+  std::mutex mux;
+  std::queue<Locker*> pool;
+
+ public:
+  Menager();
+  ~Menager();
+  Locker* getTurnstile();
+  void returnTurnstile(Locker*);
+};
 
 class Mutex {
  private:
-  static std::unordered_set<std::shared_ptr<std::mutex>> pool;
-  static std::mutex poolLock;
-
-  static std::unordered_map<Mutex*, std::shared_ptr<std::mutex>> mutexLocker;
+  static Menager menago;
+  static Locker* dummy;
   static std::vector<std::mutex> dataRace;
-  static u_char currId;
+  static u_char dataRaceMax;
 
-  std::atomic_uint activeThreads;
-  u_char id;
-
-  std::shared_ptr<std::mutex> getTurnstile();
-  void giveBackTurnstile(std::shared_ptr<std::mutex>);
+  Locker* lckPtr;
 
  public:
   Mutex();
   Mutex(const Mutex&) = delete;
-  void lock();    // NOLINT
-  void unlock();  // NOLINT
+
+  void lock();
+  void unlock();
 };
 
 #endif  // SRC_TURNSTILE_H_
